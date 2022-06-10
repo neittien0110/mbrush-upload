@@ -1,4 +1,4 @@
 *.pyc
 *~
 
-mbrush/logs/xvba_debug.log
+*xvba_debug.log
