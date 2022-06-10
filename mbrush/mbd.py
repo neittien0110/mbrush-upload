@@ -97,16 +97,42 @@ def _pack_bits(bit_arr):
   byte_arr = bytes(byte_arr.reshape(-1))
   return byte_arr
 
-def _resize(img):
+#-----------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------
+def _resize(img, zoom : float):
+  """_summary_
+    Co giãn ma trận pixel đế sao cho chiều cao không vượt quá {LINE_WIDTH}=360 điểm ảnh
+  Args:
+      img (_type_): mảng 3 chiều chứa dữ liệu ảnh R, G, B
+      zoom (float, optional): Tỉ lệ zoom ảnh để vừa khít với độ cao tối đa 1.44 cm. Giá trị phải <=1. Mặc định = 1.
+  Returns:
+      _type_: _description_
+  """
   import cv2
-  
+
+  # Lấy ra kích thước chiều cao và chiều dài ảnh
   h, w = img.shape[:2]
+
+  # Luôn luôn co giãn sao cho chiều cao ảnh luôn là tối đa  
   if h == LINE_WIDTH:
     return img
-  scale = LINE_WIDTH/h
-  img = cv2.resize(img, (int(w*scale), LINE_WIDTH))
+  scale = int((LINE_WIDTH/h * zoom))
+  # Co để được ảnh bé hơn chiều cao tối đa
+  newW= int(w*scale)
+  newH= int(LINE_WIDTH * zoom)
+  img = cv2.resize(img, (newW,  newH))
+  
+  ext= np.full((LINE_WIDTH- newH, newW ,img.shape[2]),fill_value=255, dtype=np.uint8)
+  if (True):
+    #Khoảng trống ở phía trên
+    img = np.append(ext, img, axis=0)
+  else:
+    #Khoảng trống ở phía dưới
+    img = np.append(img, ext, axis=0)    
   return img
 
+#-----------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------
 def _cmy_array_to_lines(img, color_offsets=None):
   if color_offsets is None:
     color_offsets = COLOR_OFFSETS
@@ -152,13 +178,26 @@ def _cmy_array_to_lines(img, color_offsets=None):
     lines.append(line)
   return lines
 
-def convert_to_mbd(img, color_offsets=None):
-  img = _resize(img)
+def convert_to_mbd(img, color_offsets=None, zoom : float=1):
+  """_summary_
 
+  Args:
+      img (_type_): _description_
+      color_offsets (_type_, optional): _description_. Defaults to None.
+      zoom (float, optional): Tỉ lệ zoom ảnh để vừa khít với độ cao tối đa 1.44 cm. Giá trị phải <=1. Mặc định = 1.
+  Returns:
+      _type_: _description_
+  """
+  print("Co giãn ảnh gốc theo tỷ lệ zoom ")
+  img = _resize(img, zoom)
+  print("Chuyển RGB thành CMY")
   img = 255 - img #RGB -> CMY
-  img = _dither(img)
+  print("Dither ảnh để tạo đốm màu khuyếch tán lượng tử...")
+  img = _dither(img) 
+  print("Chuyển thành các pixel")   
   lines = _cmy_array_to_lines(img, color_offsets=color_offsets)
 
+  print("Mã hóa theo định dạng mdb")   
   header = 'MBrush'.encode()
   header += bytes([0,0,0,2,0,0,0,0,0,0])
   mbd = bytes([0x00, 0x87]).join([header]+lines)
