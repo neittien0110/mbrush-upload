@@ -11,8 +11,8 @@ import sys
 
 filename = None
 '''Tên file ảnh cần in'''
-mBrushIP = None
-'''Địa chỉ IP máy in mBrush. Mặc định là 192.168.44.1, hoặc 192.168.88.1'''
+mBrushIP = "192.168.88.1"
+'''Địa chỉ IP máy in mBrush. Mặc định là 192.168.88.1, hoặc có thể là 192.168.44.1'''
 zoom = 1
 ''' Tỉ lệ zoom ảnh để vừa khít với độ cao tối đa 1.44 cm. Giá trị phải 0.2<= .. <=1. Mặc định = 1.'''
 
@@ -29,7 +29,7 @@ def param_parser():
     try:
         opts, args = getopt.getopt(argv, "f:i:z:", ["file=","ip=","zoom="])
     except:
-        print("upload.py -f <image> -i <mBrush IP> [-z 0.8]")
+        print("upload.py -f <image> [-i <mBrushIP=192.168.88.1>] [-z 0.8]")
         exit(-1)
   
     for opt, arg in opts:
